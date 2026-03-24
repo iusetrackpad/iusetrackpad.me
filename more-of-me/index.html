@@ -388,57 +388,6 @@
       border-top: 1px solid var(--border);
     }
 
-    /* ── Graph ── */
-    .graph-panel {
-      position: fixed;
-      top: 72px;
-      right: 40px;
-      width: 320px;
-      height: 200px;
-      background: var(--bg-2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      overflow: hidden;
-      cursor: grab;
-      z-index: 99;
-    }
-
-    .graph-panel:active { cursor: grabbing; }
-
-    .graph-panel svg { width: 100%; height: 100%; }
-
-    .node circle {
-      fill: var(--bg-3);
-      stroke: var(--accent);
-      stroke-width: 1.5;
-      transition: fill 0.2s;
-      cursor: pointer;
-    }
-
-    .node.center circle {
-      fill: var(--accent);
-      stroke: var(--accent);
-      r: 10;
-    }
-
-    .node:hover circle { fill: var(--accent-dim); }
-
-    .node text {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 7px;
-      fill: var(--text-muted);
-      pointer-events: none;
-      user-select: none;
-    }
-
-    .node.center text { fill: var(--text); font-weight: 600; }
-
-    .node.center text { fill: var(--text); font-weight: 600; }
-
-    .link {
-      stroke: var(--border);
-      stroke-width: 1.2;
-    }
 
     footer span {
       font-family: 'JetBrains Mono', monospace;
@@ -717,10 +666,6 @@
 
   <hr class="divider" />
 
-  <!-- Graph Panel -->
-  <div class="graph-panel">
-    <svg id="graph-svg"></svg>
-  </div>
 
   <!-- Contact -->
   <section id="contact" class="fade-in">
@@ -805,93 +750,7 @@
     }
   </script>
 
-  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
   <script>
-    const nodes = [
-      { id: 'Winston Zhang', group: 'center' },
-      { id: 'FTC Robotics', group: 'main' },
-      { id: 'Gear Forward', group: 'main' },
-      { id: 'Engineering', group: 'main' },
-      { id: 'Skills', group: 'main' },
-      { id: 'Team 12599', group: 'sub' },
-      { id: 'Team 31242', group: 'sub' },
-      { id: 'Worlds ×2', group: 'leaf' },
-      { id: 'MTI Win', group: 'leaf' },
-      { id: 'Michiana', group: 'leaf' },
-      { id: 'Oregon States', group: 'leaf' },
-      { id: 'Think Award', group: 'leaf' },
-      { id: 'VP Tech & Mktg', group: 'sub' },
-      { id: 'STEM Nonprofit', group: 'leaf' },
-      { id: 'CNC Machine', group: 'sub' },
-      { id: 'Motorsports Car', group: 'sub' },
-      { id: 'CAD', group: 'sub' },
-      { id: 'Java', group: 'leaf' },
-      { id: 'Python', group: 'leaf' },
-      { id: 'Onshape', group: 'leaf' },
-    ];
-
-    const links = [
-      { source: 'Winston Zhang', target: 'FTC Robotics' },
-      { source: 'Winston Zhang', target: 'Gear Forward' },
-      { source: 'Winston Zhang', target: 'Engineering' },
-      { source: 'Winston Zhang', target: 'Skills' },
-      { source: 'FTC Robotics', target: 'Team 12599' },
-      { source: 'FTC Robotics', target: 'Team 31242' },
-      { source: 'Team 12599', target: 'Worlds ×2' },
-      { source: 'Team 12599', target: 'MTI Win' },
-      { source: 'Team 12599', target: 'Michiana' },
-      { source: 'Team 31242', target: 'Oregon States' },
-      { source: 'Team 31242', target: 'Think Award' },
-      { source: 'Gear Forward', target: 'VP Tech & Mktg' },
-      { source: 'Gear Forward', target: 'STEM Nonprofit' },
-      { source: 'Engineering', target: 'CNC Machine' },
-      { source: 'Engineering', target: 'Motorsports Car' },
-      { source: 'Engineering', target: 'CAD' },
-      { source: 'CAD', target: 'Onshape' },
-      { source: 'Skills', target: 'Java' },
-      { source: 'Skills', target: 'Python' },
-    ];
-
-    const svg = d3.select('#graph-svg');
-    const container = document.querySelector('.graph-panel');
-    const W = 320, H = 200;
-
-    const radii = { center: 10, main: 7, sub: 5, leaf: 4 };
-
-    const sim = d3.forceSimulation(nodes)
-      .force('link', d3.forceLink(links).id(d => d.id).distance(30))
-      .force('charge', d3.forceManyBody().strength(-60))
-      .force('center', d3.forceCenter(W / 2, H / 2))
-      .force('collision', d3.forceCollide().radius(d => radii[d.group] + 8));
-
-    const g = svg.append('g');
-
-    svg.call(d3.zoom().scaleExtent([0.4, 3]).on('zoom', e => g.attr('transform', e.transform)));
-
-    const link = g.append('g').selectAll('line')
-      .data(links).join('line').attr('class', 'link');
-
-    const node = g.append('g').selectAll('g')
-      .data(nodes).join('g')
-      .attr('class', d => `node ${d.group === 'center' ? 'center' : ''}`)
-      .call(d3.drag()
-        .on('start', (e, d) => { if (!e.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
-        .on('drag', (e, d) => { d.fx = e.x; d.fy = e.y; })
-        .on('end', (e, d) => { if (!e.active) sim.alphaTarget(0); d.fx = null; d.fy = null; }));
-
-    node.append('circle').attr('r', d => radii[d.group]);
-
-    node.append('text')
-      .attr('dy', d => radii[d.group] + 12)
-      .attr('text-anchor', 'middle')
-      .text(d => d.id);
-
-    sim.on('tick', () => {
-      link.attr('x1', d => d.source.x).attr('y1', d => d.source.y)
-          .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
-      node.attr('transform', d => `translate(${d.x},${d.y})`);
-    });
-
     // Fireworks
     const fwCanvas = document.getElementById('fireworks');
     const fwCtx = fwCanvas.getContext('2d');
