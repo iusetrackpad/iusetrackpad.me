@@ -219,6 +219,9 @@
   <!-- Snow Canvas -->
   <canvas id="snow" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9998;"></canvas>
 
+  <!-- Fireworks Canvas -->
+  <canvas id="fireworks" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9997;"></canvas>
+
   <!-- Loader -->
   <div id="loader">
     <div class="loader-logo">iusetrackpad<span>.</span></div>
@@ -322,6 +325,62 @@
       }
     }
     type();
+
+    // Fireworks
+    const fwCanvas = document.getElementById('fireworks');
+    const fwCtx = fwCanvas.getContext('2d');
+    function resizeFw() { fwCanvas.width = window.innerWidth; fwCanvas.height = window.innerHeight; }
+    resizeFw();
+    window.addEventListener('resize', resizeFw);
+
+    const fwColors = ['#5bb8f5', '#7ecbf7', '#ffffff', '#a8d8f0', '#3a9fd4', '#c9e8ff'];
+    let fwParticles = [];
+
+    class FwParticle {
+      constructor(x, y, color) {
+        this.x = x; this.y = y; this.color = color;
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 4 + 1;
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed;
+        this.alpha = 1;
+        this.decay = Math.random() * 0.018 + 0.012;
+        this.size = Math.random() * 2.5 + 1;
+      }
+      update() { this.x += this.vx; this.y += this.vy; this.vy += 0.06; this.alpha -= this.decay; }
+      draw() {
+        fwCtx.save();
+        fwCtx.globalAlpha = Math.max(0, this.alpha);
+        fwCtx.beginPath();
+        fwCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        fwCtx.fillStyle = this.color;
+        fwCtx.fill();
+        fwCtx.restore();
+      }
+    }
+
+    function launchFw() {
+      const side = Math.random() < 0.5 ? 'left' : 'right';
+      const margin = window.innerWidth * 0.14;
+      const x = side === 'left' ? Math.random() * margin : window.innerWidth - Math.random() * margin;
+      const y = Math.random() * window.innerHeight * 0.65 + window.innerHeight * 0.05;
+      const color = fwColors[Math.floor(Math.random() * fwColors.length)];
+      for (let i = 0; i < 70; i++) fwParticles.push(new FwParticle(x, y, color));
+    }
+
+    function animateFw() {
+      fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
+      fwParticles = fwParticles.filter(p => p.alpha > 0);
+      fwParticles.forEach(p => { p.update(); p.draw(); });
+      requestAnimationFrame(animateFw);
+    }
+    animateFw();
+
+    function scheduleFw() {
+      launchFw();
+      setTimeout(scheduleFw, Math.random() * 5000 + 3000);
+    }
+    setTimeout(scheduleFw, 2500);
   </script>
 
 </body>
